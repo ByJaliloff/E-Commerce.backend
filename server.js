@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import UserRouter from "./src/routes/auth.route.js";
 import ProductRouter from "./src/routes/product.route.js";
+import CartRouter from "./src/routes/cart.route.js";
 
 dotenv.config();
 

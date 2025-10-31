@@ -82,3 +82,40 @@ export const register = async (req, res) => {
     res.status(500).json({ message: "server error" });
   }
 };
+
+export const refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken || req.body.refreshToken;
+    if (!token) {
+      return res.status(401).json({ message: "no token provided" });
+    }
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) return  res.status(404).json({ message: "user not found" });
+    if (user.refreshToken !== token) {
+      return res.status(403).json({ message: "invalid refresh token" });
+    }
+
+    const newAccessToken = generateAccessToken(user, res);
+
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    res.status(500).json({ message: "server error" });
+  }
+};
+
+
+export const logout = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.refreshToken = null;
+      await user.save();
+    }
+    res.clearCookie("accessToken")
+     .clearCookie("refreshToken")
+     .json({ message: "logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "server error" });
+  }
+}

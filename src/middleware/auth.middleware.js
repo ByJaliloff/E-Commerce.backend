@@ -1,23 +1,25 @@
-import User from "../models/user.model.js"
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
-export const protect = async (req, res, next) => {
-	try {
-		const auth = req.headers.authorization
-		const token = auth?.split(' ')[1] || req.cookies.accessToken
-		if (!token) {
-			return res.status(401).json({ error: 'Not authorized' })
-		}
-		const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-		req.user = await User.findById(decoded.id).select('-password')
-		next()
-	} catch (error) {
-		if (error.name === 'TokenExpiredError') {
-			return res.status(401).json({ error: 'Token expired' });
-		} else if (error.name === 'JsonWebTokenError') {
-			return res.status(401).json({ error: 'Invalid token' });
-		}
-		console.error("Auth error:", error);
-		res.status(500).json({ error: 'Internal server error' });
-	}
+export const protect = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1] || req.cookies.accessToken
+    try {
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: "Invalid token" });
+    }
+}
+
+export const isAdmin = (req, res, next) => {
+    try {
+        req.user.role === "admin" && next()
+    } catch (error) {
+        return res.status(403).json({ message: "Unauthorized" });
+    }
 }
