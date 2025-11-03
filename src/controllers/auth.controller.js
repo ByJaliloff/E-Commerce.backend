@@ -21,7 +21,7 @@ export const login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.status(200).json({ accessToken, refreshToken });
+    res.status(200).json({ accessToken, refreshToken, user });
   } catch (error) {
     res.status(500).json({ message: "server error" });
   }
@@ -65,6 +65,7 @@ export const register = async (req, res) => {
         isStore,
         storeName,
         voen,
+        role: "store",
         storeDescription,
       });
     }
@@ -75,7 +76,7 @@ export const register = async (req, res) => {
     const refreshToken = generateRefreshToken(newUser, res);
     newUser.refreshToken = refreshToken;
     await newUser.save();
-    res.status(200).json({ accessToken, refreshToken });
+    res.status(200).json({ accessToken, refreshToken, newUser });
 
   } catch (error) {
     console.error(error);

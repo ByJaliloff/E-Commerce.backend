@@ -36,10 +36,10 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    roles: {
-        type: [String],
-        default: ['user'],
-        enum: ['user', 'admin', 'store']
+    role: {
+        type:String,
+        enum: ['user', 'admin', 'store'],
+        default: 'user'
     },
     isStore: {
         type: Boolean,
