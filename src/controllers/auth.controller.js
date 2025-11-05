@@ -2,6 +2,22 @@ import jwt from "jsonwebtoken";
 import express from "express";
 import User from "../models/user.model.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/tokenGenerator.js";
+import nodeMailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
+
+
+const transporter = nodeMailer.createTransport({
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
 
 export const login = async (req, res) => {
   try {
@@ -76,6 +92,21 @@ export const register = async (req, res) => {
     const refreshToken = generateRefreshToken(newUser, res);
     newUser.refreshToken = refreshToken;
     await newUser.save();
+
+          const mailOptions = {
+            from: process.env.EMAIL,
+            to: newUser.email,  
+            subject: 'Email Register',
+            html: `
+              <h3>Register</h3>
+              <p>Dear, ${newUser.firstname} ${newUser.lastname}</p>
+              <p>Thanks for your registration</p>
+              <p>Best regards</p>
+            `
+          };
+
+
+      transporter.sendMail(mailOptions) 
     res.status(200).json({ accessToken, refreshToken, newUser });
 
   } catch (error) {

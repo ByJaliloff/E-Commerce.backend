@@ -4,6 +4,8 @@ import express from "express";
 import UserRouter from "./src/routes/auth.route.js";
 import ProductRouter from "./src/routes/product.route.js";
 import CartRoute from "./src/routes/cart.route.js";
+import CategoryRouter from "./src/routes/category.route.js"
+import FavRoute from "./src/routes/fav.route.js"
 
 dotenv.config();
 
@@ -16,7 +18,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", UserRouter);
 app.use("/api/products", ProductRouter);
+app.use('/api/categories', CategoryRouter)
 app.use('/api/cart', CartRoute)
+app.use('/api/fav', FavRoute)
 
 const connectDB = mongoose.connect(process.env.MONGO_URI)
 
