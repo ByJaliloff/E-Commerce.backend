@@ -4,6 +4,7 @@ import User from "../models/user.model.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/tokenGenerator.js";
 import nodeMailer from "nodemailer";
 import dotenv from "dotenv";
+import { v4 as uuidv4 } from 'uuid';
 dotenv.config();
 
 
@@ -151,3 +152,63 @@ export const logout = async (req, res) => {
     res.status(500).json({ message: "server error" });
   }
 }
+
+export const verifyEmail = async (req, res) => {
+  const userId= req.user.id;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const verifyCode = uuidv4()
+    user.verifyCode = verifyCode;
+    await user.save();
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: user.email,
+      subject: 'Email Verification',
+      html: `
+        <h3>Verify Email</h3>
+        <p>Dear, ${user.firstname} ${user.lastname}</p>
+        <p>Thanks for your registration</p>
+        <p>Verify code: ${verifyCode}</p>
+        <p>Best regards</p>
+      `
+    };
+
+
+    transporter.sendMail(mailOptions) 
+    res.status(200).json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "server error" });
+  }
+}
+
+
+ export const checkVerifyCode = async (req, res) => {
+    const { code } = req.body;
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.verifyCode !== code) {
+            return res.status(400).json({ message: "The code is incorrect" });
+        }
+
+        user.verifyCode = null;
+        user.verified = true
+        await user.save();
+
+        return res.json({ message: "Code verified!" });
+
+    } catch (error) {
+        console.error("Error in checkVerifyCode function: ", error);
+        return res.status(500).json({ message: "There is a error" });
+    }
+};

@@ -76,7 +76,11 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'Product',
         default: []
-    }]
+    }],
+    verifyCode: {
+        type: String,
+        default: null
+    }
 });
 
 userSchema.pre('save', async function () {
